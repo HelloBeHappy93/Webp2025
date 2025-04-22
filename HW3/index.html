@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>景點觀光展覽資訊</title>
+    <style>
+        table {
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #04aa6d;
+            color: white;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 6px 12px;
+            font-size: 14px;
+            background-color: #04aa6d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #038f5d;
+        }
+
+        #pageInfo {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>景點觀光展覽資訊</h1>
+
+    <table id="csie">
+        <thead>
+            <tr>
+                <th>名稱</th>
+                <th>地點</th>
+                <th>票價</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <div class="controls">
+        <button onclick="prevPage()">上一頁</button>
+        <button onclick="nextPage()">下一頁</button>
+        <span id="pageInfo"></span>
+    </div>
+
+    <script>
+        const openURL = "https://cloud.culture.tw/frontsite/trans/SearchShowAction.do?method=doFindTypeJ&category=6";
+        let dataset = [];
+        let currentPage = 0;
+        const pageSize = 10;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', openURL, true);
+        xhr.send();
+
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                dataset = JSON.parse(this.responseText);
+                renderPage();
+            }
+        };
+
+        function renderPage() {
+            const tableBody = document.getElementById("csie").getElementsByTagName("tbody")[0];
+            tableBody.innerHTML = "";
+
+            const start = currentPage * pageSize;
+            const end = Math.min(start + pageSize, dataset.length);
+
+            for (let i = start; i < end; i++) {
+                const data = dataset[i];
+                const row = tableBody.insertRow();
+
+                row.insertCell().innerText = data.title || "無標題";
+                row.insertCell().innerText = data.showInfo?.[0]?.location || "無地點";
+                row.insertCell().innerText = data.showInfo?.[0]?.price || "無票價";
+            }
+
+            const totalPages = Math.ceil(dataset.length / pageSize);
+            document.getElementById("pageInfo").innerText = ` ${currentPage + 1}  /  ${totalPages} `;
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(dataset.length / pageSize);
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                renderPage();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderPage();
+            }
+        }
+    </script>
+</body>
+</html>
